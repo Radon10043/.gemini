@@ -1,0 +1,68 @@
+# ==============================================================================
+# .gemini Git Ignore Configuration
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Credentials & Sensitive Information (Strictly Never Commit)
+# ------------------------------------------------------------------------------
+*token*
+*.key
+*.pem
+*.secret
+*credential*
+.env
+.env.*
+
+# ------------------------------------------------------------------------------
+# 2. Antigravity CLI Runtime & App Data (~/.gemini/antigravity-cli)
+#    This directory primarily holds runtime databases, session trajectories,
+#    crashes, logs, and updater caches.
+#    We ignore everything except explicit user configurations and scripts.
+# ------------------------------------------------------------------------------
+antigravity-cli/*
+
+# Whitelist user configuration files & custom scripts
+!antigravity-cli/settings.json
+!antigravity-cli/keybindings.json
+!antigravity-cli/statusline*
+!antigravity-cli/*.py
+!antigravity-cli/*.sh
+!antigravity-cli/scripts/
+
+# ------------------------------------------------------------------------------
+# 3. Databases, Ephemeral & Temporary Files
+# ------------------------------------------------------------------------------
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.log
+*.lock
+*.timestamp
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.migrated
+
+# ------------------------------------------------------------------------------
+# 4. Programming Languages & Dependencies (e.g. for plugins/skills)
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+node_modules/
+
+# ------------------------------------------------------------------------------
+# 5. OS & IDE Metadata
+# ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

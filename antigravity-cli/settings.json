@@ -1,0 +1,12 @@
+{
+  "model": "Gemini 3.8 Flash (High)",
+  "statusLine": {
+    "type": "command",
+    "command": "/root/.gemini/antigravity-cli/statusline.py"
+  },
+  "trustedWorkspaces": [
+    "/vol/MTAdequacy",
+    "/vol/paper-MTadequacy",
+    "/root/.gemini"
+  ]
+}
