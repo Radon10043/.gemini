@@ -33,7 +33,7 @@ def get_statusline():
         or os.getcwd()
     )
 
-    # 3. Extract thinking effort / budget (displayed as lowercase, e.g., low, medium, high)
+    # 3. Extract model name & thinking effort / budget
     effort = (
         data.get("effort")
         or data.get("thinking_effort")
@@ -41,26 +41,52 @@ def get_statusline():
         or ""
     )
 
-    model_info = data.get("model") or {}
-    model_name = model_info.get("display_name") or model_info.get("id") or ""
+    model_raw = data.get("model") or {}
+    if isinstance(model_raw, dict):
+        model_name = (
+            model_raw.get("display_name")
+            or model_raw.get("id")
+            or model_raw.get("name")
+            or ""
+        )
+    elif isinstance(model_raw, str):
+        model_name = model_raw
+    else:
+        model_name = ""
 
-    # If effort not in data, try extracting from model name or settings.json
-    if not effort:
-        if not model_name:
-            settings_path = os.path.join(app_data, "settings.json")
+    if not model_name:
+        model_name = data.get("model_name") or ""
+
+    # If model_name or effort not in data, fallback to settings.json
+    if not model_name or not effort:
+        for s_dir in [app_data, os.path.join(cwd, ".gemini"), os.path.expanduser("~/.gemini")]:
+            settings_path = os.path.join(s_dir, "settings.json")
             if os.path.exists(settings_path):
                 try:
                     with open(settings_path, "r", encoding="utf-8") as f:
                         s_data = json.load(f)
-                        model_name = s_data.get("model", "")
-                        effort = s_data.get("effort", "")
+                        if not model_name:
+                            model_name = s_data.get("model", "")
+                        if not effort:
+                            effort = s_data.get("effort", "")
                 except Exception:
                     pass
+            if model_name and effort:
+                break
 
-        if model_name:
-            m = re.search(r'\((Low|Medium|High|XHigh|Max)\)', model_name, re.IGNORECASE)
-            if m:
+    if not model_name:
+        model_name = os.getenv("ANTIGRAVITY_MODEL", "")
+
+    # Extract effort if embedded in model name (e.g., "Gemini 3.8 Flash (High)")
+    model_display = model_name
+    if model_name:
+        m = re.search(r'\((Low|Medium|High|XHigh|Max)\)', model_name, re.IGNORECASE)
+        if m:
+            if not effort:
                 effort = m.group(1)
+            model_display = re.sub(r'\s*\((Low|Medium|High|XHigh|Max)\)', '', model_name, flags=re.IGNORECASE).strip()
+        else:
+            model_display = model_name.strip()
 
     if not effort:
         effort = os.getenv("ANTIGRAVITY_EFFORT", "high")
@@ -149,6 +175,7 @@ def get_statusline():
 
     # 6. ANSI 256-color palette
     COLOR_CWD = "\033[38;5;75m"       # Light blue
+    COLOR_MODEL = "\033[38;5;147m"    # Soft periwinkle / violet
     COLOR_THINK = "\033[38;5;114m"    # Mint green
     COLOR_CTX = "\033[38;5;214m"      # Amber yellow
     COLOR_TITLE = "\033[38;5;177m"    # Lavender / magenta
@@ -157,16 +184,16 @@ def get_statusline():
 
     sep = f" {COLOR_SEP}·{RESET} "
 
-    # Format: /vol/workdir-SyzAster · medium · ctx 30% used · session title
-    statusline = (
-        f"{COLOR_CWD}{cwd}{RESET}"
-        f"{sep}"
-        f"{COLOR_THINK}{effort}{RESET}"
-        f"{sep}"
-        f"{COLOR_CTX}ctx {pct}% used{RESET}"
-        f"{sep}"
-        f"{COLOR_TITLE}{title}{RESET}"
-    )
+    # Format: /vol/workdir-SyzAster · Gemini 3.8 Flash · high · ctx 30% used · session title
+    parts = [f"{COLOR_CWD}{cwd}{RESET}"]
+    if model_display:
+        parts.append(f"{COLOR_MODEL}{model_display}{RESET}")
+    if effort:
+        parts.append(f"{COLOR_THINK}{effort}{RESET}")
+    parts.append(f"{COLOR_CTX}ctx {pct}% used{RESET}")
+    parts.append(f"{COLOR_TITLE}{title}{RESET}")
+
+    statusline = sep.join(parts)
 
     return statusline
 
