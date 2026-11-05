@@ -1,0 +1,10 @@
+{
+  "userSettings": {
+    "customThemeSeedsDark": {
+      "background": "#282C34",
+      "foregroundOverride": "#ABB2BF",
+      "primary": "#61AFEF"
+    },
+    "themeMode": "THEME_MODE_DARK"
+  }
+}
